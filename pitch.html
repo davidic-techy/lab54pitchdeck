@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lab54 | Investor Briefing</title>
+
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=satoshi@900,700,500,400&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* =========================================
+           1. CORE SYSTEM & AESTHETICS
+           ========================================= */
+      :root {
+        --void: #050505;
+        --steel: #1a1a1a;
+        --concrete: #888888;
+        --sterile: #ffffff;
+        --bio-blue: #00f0ff;
+        --upsurge-purple: #7b2cbf;
+        --global-gold: #ffd700;
+        --alert-red: #ff3333;
+        --grid-line: rgba(255, 255, 255, 0.08);
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        cursor: none;
+      }
+
+      body {
+        background-color: var(--void);
+        color: var(--sterile);
+        font-family: "Satoshi", sans-serif;
+        overflow: hidden;
+        height: 100vh;
+        width: 100vw;
+      }
+
+      /* TEXTURE: Film Grain & Scanlines */
+      .noise {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MDAiIGhlaWdodD0iNTAwIj48ZmlsdGVyIGlkPSJnoiPjxmZVR1cmJ1bGVuY2UgdHlwZT0iZnJhY3RhbE5vaXNlIiBiYXNlRnJlcXVlbmN5PSIwLjY1IiBudW1PY3RhdmVzPSIzIiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI2cpIiBvcGFjaXR5PSIwLjAzIi8+PC9zdmc+");
+        pointer-events: none;
+        z-index: 9999;
+        opacity: 0.4;
+      }
+      .scanlines {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: repeating-linear-gradient(
+          0deg,
+          rgba(255, 255, 255, 0.02) 0px,
+          rgba(255, 255, 255, 0.02) 1px,
+          transparent 1px,
+          transparent 4px
+        );
+        pointer-events: none;
+        z-index: 9998;
+      }
+
+      /* CURSOR */
+      .cursor {
+        width: 20px;
+        height: 20px;
+        border: 1px solid var(--bio-blue);
+        position: fixed;
+        pointer-events: none;
+        z-index: 10001;
+        transform: translate(-50%, -50%);
+        border-radius: 50%;
+        transition: transform 0.1s;
+        box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+      }
+
+      /* =========================================
+           2. SLIDE MECHANICS
+           ========================================= */
+      .deck-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+      }
+      .slide {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+        pointer-events: none;
+        transition: all 0.6s cubic-bezier(0.2, 1, 0.3, 1);
+        padding: 60px 80px;
+        display: flex;
+        flex-direction: column;
+      }
+      .slide.active {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+        pointer-events: all;
+        z-index: 10;
+      }
+      .slide.prev {
+        opacity: 0;
+        transform: translateY(-30px) scale(0.98);
+      }
+
+      .progress-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 6px;
+        background: #222;
+        z-index: 100;
+      }
+      .progress-bar {
+        height: 100%;
+        background: var(--bio-blue);
+        width: 0%;
+        transition: width 0.3s;
+      }
+
+      /* =========================================
+           3. TYPOGRAPHY & LAYOUT
+           ========================================= */
+      .slide-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #222;
+        padding-bottom: 20px;
+        margin-bottom: 40px;
+      }
+      .slide-tag {
+        font-family: "JetBrains Mono";
+        color: var(--bio-blue);
+        font-size: 0.9rem;
+        letter-spacing: 2px;
+      }
+      .headline {
+        font-size: 3.5rem;
+        line-height: 1.1;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        background: linear-gradient(180deg, #fff 0%, #aaa 100%);
+        background-clip: text;
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+      .accent {
+        color: var(--bio-blue);
+        -webkit-text-fill-color: var(--bio-blue);
+      }
+
+      .list-group {
+        margin-top: 30px;
+      }
+      .list-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 20px;
+        color: #ccc;
+        font-size: 1.2rem;
+      }
+      .list-bullet {
+        font-family: "JetBrains Mono";
+        color: var(--bio-blue);
+        margin-right: 15px;
+      }
+
+      /* BENTO GRIDS */
+      .grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 60px;
+        height: 100%;
+      }
+      .grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 30px;
+      }
+
+      .panel {
+        background: rgba(10, 10, 10, 0.6);
+        border: 1px solid #222;
+        padding: 30px;
+        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        transition: 0.3s;
+      }
+      .panel:hover {
+        border-color: #444;
+        background: #111;
+      }
+      .panel-title {
+        font-family: "JetBrains Mono";
+        color: #666;
+        font-size: 0.8rem;
+        margin-bottom: 15px;
+        letter-spacing: 1px;
+      }
+
+      /* DATA VISUALS */
+      .big-stat {
+        font-size: 4rem;
+        font-weight: 800;
+        color: var(--sterile);
+        line-height: 1;
+      }
+      .stat-desc {
+        font-family: "JetBrains Mono";
+        color: #888;
+        margin-top: 10px;
+        font-size: 0.9rem;
+      }
+
+      /* =========================================
+       MOBILE RESPONSIVENESS PATCH
+       ========================================= */
+      @media (max-width: 900px) {
+        /* 1. Disable Custom Cursor (It lags on phones) */
+        .cursor {
+          display: none !important;
+        }
+
+        /* 2. Resize Typography */
+        .headline {
+          font-size: 2.5rem !important;
+          margin-bottom: 20px;
+        }
+        .slide-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 10px;
+        }
+        .big-stat {
+          font-size: 3.5rem !important;
+        }
+
+        /* 3. Stack Grids Vertically */
+        .grid-2,
+        .grid-3 {
+          display: flex !important;
+          flex-direction: column;
+          gap: 30px;
+          height: auto !important;
+          margin-top: 30px !important;
+        }
+
+        /* 4. Adjust Layout & Spacing */
+        .slide {
+          padding: 30px 20px 100px 20px !important; /* Extra bottom padding for buttons */
+          overflow-y: auto !important; /* Allow scrolling */
+          display: block !important; /* Unlocks flexbox constraints */
+        }
+
+        /* 5. Fix Panels */
+        .panel {
+          padding: 20px !important;
+        }
+
+        /* 6. Show Mobile Controls */
+        .mobile-controls {
+          display: flex !important;
+        }
+
+        /* 7. Hide Visuals that take too much space */
+        .data-lie-visual {
+          height: 120px !important;
+        }
+
+        /* 8. Center content on Title Slide */
+        .slide > div {
+          justify-content: flex-start !important;
+        }
+      }
+
+      /* Mobile Buttons Style */
+      .mobile-controls {
+        display: none; /* Hidden on Desktop */
+        position: fixed;
+        bottom: 20px;
+        left: 0;
+        width: 100%;
+        justify-content: center;
+        gap: 20px;
+        z-index: 9999;
+      }
+      .mob-btn {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        color: white;
+        padding: 15px 40px;
+        font-family: "JetBrains Mono";
+        font-size: 1.2rem;
+        border-radius: 30px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="noise"></div>
+    <div class="scanlines"></div>
+    <div class="cursor"></div>
+    <div class="progress-container"><div class="progress-bar"></div></div>
+
+    <div class="deck-container">
+      <div class="slide active">
+        <div
+          style="
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+          "
+        >
+          <div class="slide-tag" style="margin-bottom: 20px">
+            /// SYSTEM INITIALIZED
+          </div>
+          <h1 class="headline" style="font-size: 6rem">
+            LAB54<span class="accent">.</span>
+          </h1>
+          <h2
+            style="
+              font-size: 2rem;
+              color: #888;
+              margin-top: 30px;
+              line-height: 1.4;
+            "
+          >
+            Protecting Life-Saving Drugs in Transit.<br />
+            Real-time monitoring and prediction for<br />high-value
+            pharmaceutical shipments.
+          </h2>
+        </div>
+        <div
+          style="
+            font-family: 'JetBrains Mono';
+            font-size: 0.8rem;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+          "
+        >
+          <div>SEED PITCH DECK</div>
+          <div>CONFIDENTIAL // 2026</div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">02 // THE PROBLEM</div>
+        </div>
+        <h1 class="headline">
+          Life-saving drugs are being <br />destroyed during transport.
+        </h1>
+        <p style="font-size: 1.5rem; color: #888; margin-top: 20px">
+          And most companies only find out too late.
+        </p>
+
+        <div class="grid-2" style="margin-top: 60px; height: auto">
+          <div>
+            <span class="panel-title">THE CURRENT METHOD</span>
+            <p
+              style="
+                font-size: 1.1rem;
+                color: #ccc;
+                margin-top: 10px;
+                line-height: 1.6;
+              "
+            >
+              Companies rely on passive temperature loggers. These devices
+              record data silently, report only after delivery, and summarize
+              performance using averages.
+            </p>
+          </div>
+          <div
+            style="border-left: 2px solid var(--alert-red); padding-left: 30px"
+          >
+            <span class="panel-title" style="color: var(--alert-red)"
+              >THE CONSEQUENCE</span
+            >
+            <div class="list-group">
+              <div class="list-item">
+                <span class="list-bullet">></span> The drug is already damaged.
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">></span> The patient dose is lost.
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">></span> The company discovers it too
+                late.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">03 // THE BLINDSPOT</div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <h1 class="headline">
+              It’s not lack of data.<br />It’s lack of insight.
+            </h1>
+            <div class="list-group">
+              <div class="list-item">
+                <span class="list-bullet">1.</span> They hide dangerous spikes
+                in averages.
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">2.</span> They do not show where
+                damage occurred.
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">3.</span> They offer NO chance to
+                intervene.
+              </div>
+            </div>
+          </div>
+          <div
+            class="panel"
+            style="justify-content: center; align-items: center"
+          >
+            <div
+              style="
+                position: relative;
+                width: 100%;
+                height: 200px;
+                border-left: 2px solid #333;
+                border-bottom: 2px solid #333;
+              "
+            >
+              <div
+                style="
+                  position: absolute;
+                  top: 50%;
+                  width: 100%;
+                  height: 2px;
+                  background: #666;
+                  border-style: dashed;
+                "
+              ></div>
+              <div
+                style="
+                  position: absolute;
+                  top: 50%;
+                  width: 100%;
+                  height: 2px;
+                  background: var(--alert-red);
+                  clip-path: polygon(
+                    0 0,
+                    30% 0,
+                    40% -50%,
+                    50% -80%,
+                    60% -50%,
+                    70% 0,
+                    100% 0
+                  );
+                "
+              ></div>
+              <div
+                style="
+                  position: absolute;
+                  top: 10%;
+                  right: 10%;
+                  color: var(--alert-red);
+                  font-family: 'JetBrains Mono';
+                "
+              >
+                THE HIDDEN SPIKE
+              </div>
+            </div>
+            <p style="margin-top: 20px; color: #ccc">
+              Even a 30-minute excursion destroys a biologic.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">04 // COST OF FAILURE</div>
+        </div>
+        <h1 class="headline">Billions lost annually.</h1>
+        <div class="grid-3" style="margin-top: 60px">
+          <div class="panel">
+            <span class="panel-title">COVID-19 LESSON</span>
+            <h3 style="font-size: 1.5rem; color: var(--sterile)">
+              Global Wastage
+            </h3>
+            <p style="color: #888; margin-top: 10px">
+              Several countries reported massive vaccine losses. Minor transport
+              deviations rendered doses unusable.
+            </p>
+          </div>
+          <div class="panel">
+            <span class="panel-title">ADVANCED THERAPIES</span>
+            <h3 style="font-size: 1.5rem; color: var(--sterile)">
+              Cell & Gene
+            </h3>
+            <p style="color: #888; margin-top: 10px">
+              For mRNA and gene therapies, there is no margin for error.
+              Stability is binary.
+            </p>
+          </div>
+          <div class="panel" style="border-color: var(--alert-red)">
+            <span class="panel-title" style="color: var(--alert-red)"
+              >ONE SHIPMENT =</span
+            >
+            <ul style="list-style: none; margin-top: 10px; color: #ccc">
+              <li style="margin-bottom: 10px">
+                > A single patient's only dose.
+              </li>
+              <li style="margin-bottom: 10px">
+                > Hundreds of thousands of dollars.
+              </li>
+              <li>> Years of research.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">05 // MARKET FORCES</div>
+        </div>
+        <h1 class="headline">Three forces are colliding.</h1>
+        <div class="grid-3" style="margin-top: 60px">
+          <div class="panel">
+            <span class="panel-title" style="color: var(--bio-blue)"
+              >01. FRAGILITY</span
+            >
+            <p style="font-size: 1.1rem; line-height: 1.4">
+              The industry is shifting from stable chemical pills to highly
+              sensitive biologics and cell therapies.
+            </p>
+          </div>
+          <div class="panel">
+            <span class="panel-title" style="color: var(--upsurge-purple)"
+              >02. REGULATION</span
+            >
+            <p style="font-size: 1.1rem; line-height: 1.4">
+              Laws like the <strong>DSCSA</strong> now require digital
+              traceability, better data integrity, and stronger accountability.
+            </p>
+          </div>
+          <div class="panel">
+            <span class="panel-title" style="color: var(--global-gold)"
+              >03. COST</span
+            >
+            <p style="font-size: 1.1rem; line-height: 1.4">
+              Cold-chain failures cost the industry tens of billions annually.
+              The industry has outgrown passive tracking.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div
+          style="
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+          "
+        >
+          <div class="slide-tag" style="margin-bottom: 20px">
+            06 // INTRODUCING
+          </div>
+          <h1 class="headline" style="font-size: 6rem">
+            LAB54<span class="accent">.</span>
+          </h1>
+          <p
+            style="
+              font-size: 1.5rem;
+              max-width: 800px;
+              margin-top: 30px;
+              color: #ccc;
+              line-height: 1.6;
+            "
+          >
+            A real-time monitoring and prediction platform for high-value
+            pharmaceutical shipments.
+          </p>
+          <div
+            style="
+              margin-top: 50px;
+              padding: 20px 40px;
+              border: 1px solid var(--bio-blue);
+              background: rgba(0, 240, 255, 0.05);
+            "
+          >
+            <span style="font-family: 'JetBrains Mono'; color: var(--bio-blue)"
+              >THE CONTROL TOWER FOR LIFE-SAVING DRUGS IN MOTION.</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">07 // METHODOLOGY</div>
+        </div>
+        <h1 class="headline">Continuously Evaluating Risk.</h1>
+        <div class="grid-2" style="margin-top: 60px">
+          <div>
+            <span class="panel-title">INPUTS</span>
+            <div class="list-group">
+              <div class="list-item">
+                <span class="list-bullet">+</span> Live Sensor Data
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">+</span> Route & Traffic
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">+</span> Weather Exposure
+              </div>
+            </div>
+          </div>
+          <div>
+            <span class="panel-title">THE SHIFT</span>
+            <p style="color: #888; margin-bottom: 20px">
+              Instead of asking "Did something go wrong?"...
+            </p>
+            <h3 style="font-size: 2rem; color: var(--sterile)">
+              Lab54 asks: "Is something
+              <span class="accent">about to go wrong</span>, and what do we do?"
+            </h3>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">08 // ACTIVE PROTECTION</div>
+        </div>
+        <h1 class="headline">When risk is detected...</h1>
+        <div class="grid-2" style="margin-top: 60px">
+          <div class="panel" style="border-color: var(--alert-red)">
+            <span class="panel-title" style="color: var(--alert-red)"
+              >ALERT TRIGGERED</span
+            >
+            <p style="font-size: 1.2rem; margin-top: 20px">
+              Lab54 detects a likely temperature breach based on traffic and
+              compressor data.
+            </p>
+          </div>
+          <div class="panel" style="border-color: var(--signal-green)">
+            <span class="panel-title" style="color: var(--signal-green)"
+              >INTERVENTION</span
+            >
+            <ul
+              style="
+                list-style: none;
+                margin-top: 20px;
+                font-size: 1.1rem;
+                line-height: 1.8;
+              "
+            >
+              <li>> Operations teams alerted immediately.</li>
+              <li>> Reroute recommended.</li>
+              <li>> Transfer to safe facility.</li>
+            </ul>
+          </div>
+        </div>
+        <div
+          style="
+            margin-top: 40px;
+            text-align: center;
+            font-family: 'JetBrains Mono';
+            color: var(--bio-blue);
+          "
+        >
+          PASSIVE REPORTING &rarr; ACTIVE PROTECTION
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">09 // TARGET CUSTOMERS</div>
+        </div>
+        <h1 class="headline">
+          Built for those who<br />cannot afford failure.
+        </h1>
+        <div class="grid-2" style="margin-top: 60px">
+          <div class="panel">
+            <span class="panel-title">MANUFACTURERS</span>
+            <h3 style="font-size: 1.5rem">Biopharma</h3>
+            <p style="color: #888">Makers of high-value biologics.</p>
+          </div>
+          <div class="panel">
+            <span class="panel-title">PROVIDERS</span>
+            <h3 style="font-size: 1.5rem">Hospitals</h3>
+            <p style="color: #888">Handling Cell & Gene therapies.</p>
+          </div>
+          <div class="panel">
+            <span class="panel-title">MOVERS</span>
+            <h3 style="font-size: 1.5rem">Specialty Logistics</h3>
+            <p style="color: #888">Cold-chain couriers.</p>
+          </div>
+          <div class="panel">
+            <span class="panel-title">PROTECTORS</span>
+            <h3 style="font-size: 1.5rem">Insurers</h3>
+            <p style="color: #888">Covering high-value cargo.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">10 // DIFFERENTIATION</div>
+        </div>
+        <div class="grid-2">
+          <div class="panel" style="opacity: 0.5">
+            <span class="panel-title">THEM (MOST SOLUTIONS)</span>
+            <ul
+              style="
+                list-style: none;
+                margin-top: 30px;
+                font-size: 1.5rem;
+                line-height: 2;
+              "
+            >
+              <li>Focus on Sensors.</li>
+              <li>Focus on Paperwork.</li>
+              <li>Focus on Post-Delivery.</li>
+            </ul>
+          </div>
+          <div class="panel" style="border: 2px solid var(--bio-blue)">
+            <span class="panel-title" style="color: var(--bio-blue)"
+              >US (LAB54)</span
+            >
+            <ul
+              style="
+                list-style: none;
+                margin-top: 30px;
+                font-size: 1.5rem;
+                line-height: 2;
+              "
+            >
+              <li>
+                Focus on <span class="accent">Real-Time Visibility.</span>
+              </li>
+              <li>Focus on <span class="accent">Prediction.</span></li>
+              <li>Focus on <span class="accent">Accountability.</span></li>
+            </ul>
+            <div
+              style="
+                margin-top: 30px;
+                font-family: 'JetBrains Mono';
+                color: #888;
+                font-size: 0.9rem;
+              "
+            >
+              We do not replace hardware. We add intelligence on top.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">11 // THE MARKET</div>
+        </div>
+        <div class="grid-3" style="margin-top: 60px; height: 60%">
+          <div class="panel">
+            <span class="panel-title">TOTAL MARKET</span>
+            <div class="big-stat">$21B</div>
+            <div class="stat-desc">Global Pharma Cold-Chain Logistics.</div>
+          </div>
+          <div
+            class="panel"
+            style="
+              border-color: var(--bio-blue);
+              background: rgba(0, 240, 255, 0.05);
+            "
+          >
+            <span class="panel-title" style="color: var(--bio-blue)"
+              >SERVICEABLE MARKET</span
+            >
+            <div class="big-stat" style="color: var(--bio-blue)">$6.5B</div>
+            <div class="stat-desc">
+              High-Value Biologics & Advanced Therapies.
+            </div>
+          </div>
+          <div class="panel">
+            <span class="panel-title" style="color: var(--global-gold)"
+              >GROWTH VECTOR</span
+            >
+            <div class="big-stat" style="color: var(--global-gold)">
+              Emerging
+            </div>
+            <div class="stat-desc">
+              Fast-growing regions (Africa) with limited digital infrastructure.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">12 // BUSINESS MODEL</div>
+        </div>
+        <h1 class="headline">Simple, Scalable Revenue.</h1>
+        <div class="grid-3" style="margin-top: 60px">
+          <div class="panel">
+            <span class="panel-title">01. SUBSCRIPTION (SaaS)</span>
+            <h3 style="font-size: 2rem; margin-top: 20px">$50k - $250k</h3>
+            <p style="color: #888; margin-top: 10px">
+              Per enterprise, per year. For platform access.
+            </p>
+          </div>
+          <div class="panel">
+            <span class="panel-title">02. TRANSACTIONAL</span>
+            <h3 style="font-size: 2rem; margin-top: 20px">$50 - $500</h3>
+            <p style="color: #888; margin-top: 10px">
+              Per shipment. Applied to high-value transfers.
+            </p>
+          </div>
+          <div class="panel">
+            <span class="panel-title">03. FUTURE</span>
+            <h3 style="font-size: 2rem; margin-top: 20px">Data</h3>
+            <p style="color: #888; margin-top: 10px">
+              Aggregated risk insights for insurers.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">13 // WHY START IN BALTIMORE</div>
+        </div>
+        <div class="grid-2">
+          <div>
+            <h1 class="headline">The Ideal Pilot City.</h1>
+            <div class="list-group">
+              <div class="list-item">
+                <span class="list-bullet">+</span> World-class hospitals &
+                research.
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">+</span> Frequent short-distance,
+                high-risk transfers.
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">+</span> Strong life-sciences
+                ecosystem.
+              </div>
+            </div>
+          </div>
+          <div
+            class="panel"
+            style="justify-content: center; align-items: center"
+          >
+            <div
+              style="
+                width: 300px;
+                height: 300px;
+                border: 1px solid var(--upsurge-purple);
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                position: relative;
+              "
+            >
+              <div
+                style="
+                  position: absolute;
+                  top: 50%;
+                  left: 50%;
+                  transform: translate(-50%, -50%);
+                  width: 10px;
+                  height: 10px;
+                  background: white;
+                "
+              ></div>
+              <span
+                style="
+                  font-family: 'JetBrains Mono';
+                  color: var(--upsurge-purple);
+                "
+                >THE PROVING GROUND</span
+              >
+            </div>
+            <p style="margin-top: 20px; color: #ccc">
+              Validating operational impact locally before scaling globally.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">14 // EXECUTION PLAN</div>
+        </div>
+        <div class="grid-2">
+          <div
+            class="panel"
+            style="border-left: 4px solid var(--upsurge-purple)"
+          >
+            <span class="panel-title" style="color: var(--upsurge-purple)"
+              >PHASE 1: LOCAL PILOT</span
+            >
+            <h2 style="font-size: 2.5rem; margin-top: 10px">Hospital-to-Lab</h2>
+            <ul
+              style="
+                margin-top: 20px;
+                list-style: none;
+                color: #ccc;
+                line-height: 1.8;
+              "
+            >
+              <li>> Focus on fragile therapies.</li>
+              <li>> Validate prediction accuracy.</li>
+              <li>> Refine response workflows.</li>
+            </ul>
+          </div>
+          <div class="panel" style="border-left: 4px solid var(--global-gold)">
+            <span class="panel-title" style="color: var(--global-gold)"
+              >PHASE 2: SCALE</span
+            >
+            <h2 style="font-size: 2.5rem; margin-top: 10px">Transatlantic</h2>
+            <ul
+              style="
+                margin-top: 20px;
+                list-style: none;
+                color: #ccc;
+                line-height: 1.8;
+              "
+            >
+              <li>> Expand to international routes.</li>
+              <li>> Focus on global supply chains.</li>
+              <li>> Grow recurring revenue.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">15 // THE TEAM</div>
+        </div>
+        <h1 class="headline">Operators first.<br />Not just technologists.</h1>
+        <div class="grid-3" style="margin-top: 60px">
+          <div class="panel">
+            <span class="panel-title">OPERATIONS</span>
+            <p style="color: #ccc; margin-top: 10px">
+              Deep understanding of logistics and healthcare operations.
+            </p>
+          </div>
+          <div class="panel">
+            <span class="panel-title">ENGINEERING</span>
+            <p style="color: #ccc; margin-top: 10px">
+              Strong technical capability in real-time systems.
+            </p>
+          </div>
+          <div class="panel">
+            <span class="panel-title">ADVISORS</span>
+            <p style="color: #ccc; margin-top: 10px">
+              Experience in compliance and pharma supply chains.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div class="slide-header">
+          <div class="slide-tag">16 // FUNDING ASK</div>
+        </div>
+        <h1 class="headline">Raising $1.5M Seed.</h1>
+        <div class="grid-2" style="margin-top: 60px">
+          <div>
+            <span class="panel-title">USE OF FUNDS</span>
+            <div class="list-group">
+              <div class="list-item">
+                <span class="list-bullet">></span> Product & AI Development
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">></span> Pilot Operations
+              </div>
+              <div class="list-item">
+                <span class="list-bullet">></span> Regulatory Validation
+              </div>
+            </div>
+          </div>
+          <div
+            class="panel"
+            style="
+              justify-content: center;
+              align-items: center;
+              border-color: var(--bio-blue);
+            "
+          >
+            <span class="panel-title" style="color: var(--bio-blue)"
+              >RUNWAY</span
+            >
+            <div class="big-stat" style="color: var(--bio-blue)">18 Months</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="slide">
+        <div
+          style="
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+          "
+        >
+          <h1 class="headline" style="font-size: 4rem">
+            Lab54 does not just add sensors.<br />
+            <span class="accent">We add intelligence.</span>
+          </h1>
+          <p
+            style="
+              font-size: 1.5rem;
+              margin-top: 40px;
+              color: #ccc;
+              max-width: 800px;
+            "
+          >
+            Ensuring therapies arrive usable, patients receive treatment, and
+            companies protect value.
+          </p>
+          <div
+            style="margin-top: 60px; font-family: 'JetBrains Mono'; color: #666"
+          >
+            THANK YOU | LAB54.COM
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mobile-controls">
+      <div class="mob-btn" onclick="prevSlide()">&larr;</div>
+      <div class="mob-btn" onclick="nextSlide()">&rarr;</div>
+    </div>
+
+    <script>
+      let currentSlide = 0;
+      const slides = document.querySelectorAll(".slide");
+      const totalSlides = slides.length;
+      const progressBar = document.querySelector(".progress-bar");
+
+      function updateProgress() {
+        const percent = ((currentSlide + 1) / totalSlides) * 100;
+        progressBar.style.width = percent + "%";
+      }
+
+      function showSlide(index) {
+        slides.forEach((slide, i) => {
+          slide.classList.remove("active", "prev");
+          if (i === index) {
+            slide.classList.add("active");
+          } else if (i < index) {
+            slide.classList.add("prev");
+          }
+        });
+        updateProgress();
+      }
+
+      function nextSlide() {
+        if (currentSlide < totalSlides - 1) {
+          currentSlide++;
+          showSlide(currentSlide);
+        }
+      }
+
+      function prevSlide() {
+        if (currentSlide > 0) {
+          currentSlide--;
+          showSlide(currentSlide);
+        }
+      }
+
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight" || e.key === " ") nextSlide();
+        if (e.key === "ArrowLeft") prevSlide();
+      });
+
+      // Click nav
+      document.addEventListener("click", (e) => {
+        // Simple click to advance (optional, can remove if you prefer key-only)
+        if (e.clientX > window.innerWidth / 2) nextSlide();
+        else prevSlide();
+      });
+
+      updateProgress();
+
+      // Cursor Logic
+      const cursor = document.querySelector(".cursor");
+      document.addEventListener("mousemove", (e) => {
+        cursor.style.left = e.clientX + "px";
+        cursor.style.top = e.clientY + "px";
+      });
+    </script>
+  </body>
+</html>
